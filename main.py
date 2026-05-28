@@ -12,6 +12,9 @@ from datetime import datetime
 from typing import Optional
 
 
+# =========================
+# Gemini AI
+# =========================
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not GEMINI_API_KEY:
@@ -20,6 +23,7 @@ if not GEMINI_API_KEY:
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 GEMINI_MODEL = "gemini-2.0-flash"
+
 
 # =========================
 # FastAPI app
@@ -165,6 +169,20 @@ class AuthResponse(BaseModel):
     lastName: str
     phone: str
     success: bool = True
+
+
+class ProfileResponse(BaseModel):
+    userId: int
+    firstName: str
+    lastName: str
+    phone: str
+    success: bool = True
+
+
+class UpdateProfileRequest(BaseModel):
+    firstName: str
+    lastName: str
+    newPassword: Optional[str] = None
 
 
 class DiagnosisHistoryRequest(BaseModel):
@@ -335,6 +353,88 @@ async def logout(authorization: Optional[str] = Header(None)):
         "success": True,
         "message": "Выход выполнен"
     }
+
+
+# =========================
+# Profile endpoints
+# =========================
+@app.get("/profile", response_model=ProfileResponse)
+async def get_profile(authorization: Optional[str] = Header(None)):
+    user_id = get_current_user_id(authorization)
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT id, first_name, last_name, phone FROM users WHERE id = ?",
+        (user_id,)
+    )
+    user = cursor.fetchone()
+    conn.close()
+
+    if user is None:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    return ProfileResponse(
+        userId=user["id"],
+        firstName=user["first_name"],
+        lastName=user["last_name"],
+        phone=user["phone"]
+    )
+
+
+@app.put("/profile", response_model=ProfileResponse)
+async def update_profile(
+    request: UpdateProfileRequest,
+    authorization: Optional[str] = Header(None)
+):
+    user_id = get_current_user_id(authorization)
+
+    first_name = request.firstName.strip()
+    last_name = request.lastName.strip()
+
+    if not first_name or not last_name:
+        raise HTTPException(status_code=400, detail="Имя и фамилия не должны быть пустыми")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    if request.newPassword and request.newPassword.strip():
+        cursor.execute(
+            """
+            UPDATE users
+            SET first_name = ?, last_name = ?, password_hash = ?
+            WHERE id = ?
+            """,
+            (first_name, last_name, hash_password(request.newPassword.strip()), user_id)
+        )
+    else:
+        cursor.execute(
+            """
+            UPDATE users
+            SET first_name = ?, last_name = ?
+            WHERE id = ?
+            """,
+            (first_name, last_name, user_id)
+        )
+
+    conn.commit()
+
+    cursor.execute(
+        "SELECT id, first_name, last_name, phone FROM users WHERE id = ?",
+        (user_id,)
+    )
+    user = cursor.fetchone()
+    conn.close()
+
+    if user is None:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    return ProfileResponse(
+        userId=user["id"],
+        firstName=user["first_name"],
+        lastName=user["last_name"],
+        phone=user["phone"]
+    )
 
 
 # =========================
