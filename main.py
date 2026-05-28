@@ -15,7 +15,7 @@ from typing import Optional
 # =========================
 # Gemini AI
 # =========================
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_MODEL = "gemini-2.0-flash"
 
 if not GEMINI_API_KEY:
     raise RuntimeError("GEMINI_API_KEY не найден в переменных окружения")
