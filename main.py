@@ -22,7 +22,7 @@ if not GEMINI_API_KEY:
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
-GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = "gemini-1.5-flash"
 
 
 # =========================
@@ -416,6 +416,34 @@ async def get_history(authorization: Optional[str] = Header(None)):
         )
         for row in rows
     ]
+
+
+
+
+@app.delete("/history/{history_id}")
+async def delete_history_item(
+    history_id: int,
+    authorization: Optional[str] = Header(None)
+):
+    user_id = get_current_user_id(authorization)
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "DELETE FROM diagnosis_history WHERE id = ? AND user_id = ?",
+        (history_id, user_id)
+    )
+    conn.commit()
+    deleted_count = cursor.rowcount
+    conn.close()
+
+    if deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Запись истории не найдена")
+
+    return {
+        "success": True,
+        "message": "Запись истории удалена"
+    }
 
 
 @app.delete("/history")
