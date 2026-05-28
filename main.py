@@ -12,15 +12,14 @@ from datetime import datetime
 from typing import Optional
 
 
-GEMINI_MODEL = "gemini-2.0-flash"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not GEMINI_API_KEY:
     raise RuntimeError("GEMINI_API_KEY не найден в переменных окружения")
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
-GEMINI_MODEL = "gemini-1.5-flash"
-
+GEMINI_MODEL = "gemini-2.0-flash"
 
 # =========================
 # FastAPI app
