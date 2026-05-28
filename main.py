@@ -12,9 +12,6 @@ from datetime import datetime
 from typing import Optional
 
 
-# =========================
-# Gemini AI
-# =========================
 GEMINI_MODEL = "gemini-2.0-flash"
 
 if not GEMINI_API_KEY:
