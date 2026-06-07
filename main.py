@@ -576,27 +576,15 @@ async def test_gemini():
             media_type="application/json; charset=utf-8"
         )
 
-    except Exception as e:
-        traceback.print_exc()
+   except Exception as e:
+    traceback.print_exc()
 
-        error_text = str(e)
-
-        if "429" in error_text or "RESOURCE_EXHAUSTED" in error_text or "quota" in error_text.lower():
-            reply_text = (
-                "Gemini API подключен, но бесплатная квота сейчас недоступна или исчерпана. "
-                "Backend работает, ошибка связана с ограничением внешнего API."
-            )
-
-            return JSONResponse(
-                content=make_ai_response(reply_text, success=False),
-                media_type="application/json; charset=utf-8"
-            )
-
-        return JSONResponse(
-            content=make_ai_response(f"Ошибка Gemini API: {error_text}", success=False),
-            media_type="application/json; charset=utf-8"
-        )
-
+    return JSONResponse(
+        content={
+            "success": False,
+            "raw_error": str(e)
+        }
+    )
 @app.get("/models")
 async def list_models():
     try:
