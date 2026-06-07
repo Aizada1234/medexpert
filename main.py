@@ -576,15 +576,15 @@ async def test_gemini():
             media_type="application/json; charset=utf-8"
         )
 
-   except Exception as e:
-    traceback.print_exc()
+    except Exception as e:
+        traceback.print_exc()
 
-    return JSONResponse(
-        content={
-            "success": False,
-            "raw_error": str(e)
-        }
-    )
+        return JSONResponse(
+            content={
+                "success": False,
+                "raw_error": str(e)
+            }
+        )
 @app.get("/models")
 async def list_models():
     try:
