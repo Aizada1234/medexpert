@@ -597,7 +597,21 @@ async def test_gemini():
             media_type="application/json; charset=utf-8"
         )
 
+@app.get("/models")
+async def list_models():
+    try:
+        models = client.models.list()
 
+        result = []
+
+        for model in models:
+            result.append(model.name)
+
+        return {"models": result}
+
+    except Exception as e:
+        return {"error": str(e)}
+        
 @app.post("/ai/chat", response_model=AiChatResponse)
 async def ai_chat(request: AiChatRequest):
     symptoms_text = ", ".join(request.symptoms) if request.symptoms else "не указаны"
