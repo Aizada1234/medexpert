@@ -227,7 +227,15 @@ async def root():
         "database": "SQLite connected"
     }
 
+@app.get("/debug-key")
+async def debug_key():
+    key = os.getenv("GEMINI_API_KEY", "")
 
+    return {
+        "length": len(key),
+        "prefix": key[:8] if key else None,
+        "suffix": key[-4:] if key else None
+    }
 @app.get("/db/test")
 async def db_test():
     conn = get_connection()
